@@ -20,7 +20,7 @@ class AuthController extends Controller
             // Create a new token for the user
             $token = $user->createToken('YourAppNameTokenName')->plainTextToken;
 
-            return response()->json(['message' => 'Login successful', 'token' => $token]);
+            return response()->json($token, 200);
         }
 
         return response()->json(['error' => 'The provided credentials do not match our records.'], 401);
