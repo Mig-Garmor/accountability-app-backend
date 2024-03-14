@@ -20,8 +20,16 @@ class AuthController extends Controller
             // Create a new token for the user
             $token = $user->createToken('YourAppNameTokenName')->plainTextToken;
 
-            return response()->json($token, 200);
+            // Retrieve the first group ID the user belongs to, if any
+            $groupId = $user->groups()->first()?->id;
+
+            return response()->json([
+                'token' => $token,
+                'group_id' => $groupId, // This will be null if the user does not belong to any group
+            ]);
         }
+
+
 
         return response()->json(['error' => 'The provided credentials do not match our records.'], 401);
     }
