@@ -8,7 +8,7 @@ use App\Models\User;
 
 class GroupController extends Controller
 {
-    public function store(Request $request)
+    public function storeGroup(Request $request)
     {
         $user = $request->user(); // Get the authenticated user.
 
@@ -19,5 +19,19 @@ class GroupController extends Controller
         $group->users()->attach($user->id, ['permission' => 'ADMIN']);
 
         return response()->json(['message' => 'Group created successfully', 'group' => $group], 201);
+    }
+    public function getGroup(Request $request, $groupId)
+    {
+        // Attempt to find the group by its ID
+        $group = Group::find($groupId);
+
+        // Check if the group was found
+        if (!$group) {
+            // Group not found, return a 404 response
+            return response()->json(['message' => 'Group not found'], 404);
+        }
+
+        // Return the group if found
+        return response()->json($group);
     }
 }

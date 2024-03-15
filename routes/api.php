@@ -21,4 +21,5 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [UserController::class, 'register']);
 Route::get('/register', [UserController::class, 'register']);
 Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
-Route::middleware('auth:sanctum')->post('/create-group', [GroupController::class, 'store']);
+Route::middleware('auth:sanctum')->post('/group', [GroupController::class, 'storeGroup']);
+Route::middleware('auth:sanctum')->get('/group/{groupId}', [GroupController::class, 'getGroup']);
