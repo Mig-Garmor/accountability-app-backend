@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\GroupController;
+use App\Http\Controllers\ChallengeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,9 +18,13 @@ use App\Http\Controllers\GroupController;
 |
 */
 
+//Authentication
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [UserController::class, 'register']);
 Route::get('/register', [UserController::class, 'register']);
 Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
+//Group
 Route::middleware('auth:sanctum')->post('/group', [GroupController::class, 'storeGroup']);
 Route::middleware('auth:sanctum')->get('/group/{groupId}', [GroupController::class, 'getGroup']);
+//Challenge
+Route::middleware('auth:sanctum')->post('/challenge', [ChallengeController::class, 'createChallenge']);
