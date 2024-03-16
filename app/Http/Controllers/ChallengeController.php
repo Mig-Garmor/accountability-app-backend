@@ -32,7 +32,8 @@ class ChallengeController extends Controller
         // Respond with the created challenge and a success message
         return response()->json([
             'message' => 'Challenge created successfully',
-            'challenge' => $challenge
+            'challenge' => $challenge,
+            'status' => 200
         ], 201);
     }
 }

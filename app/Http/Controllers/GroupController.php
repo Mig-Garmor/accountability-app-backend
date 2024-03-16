@@ -22,8 +22,8 @@ class GroupController extends Controller
     }
     public function getGroup(Request $request, $groupId)
     {
-        // Attempt to find the group by its ID
-        $group = Group::find($groupId);
+        // Attempt to find the group by its ID with challenges
+        $group = Group::with('challenges')->find($groupId);
 
         // Check if the group was found
         if (!$group) {
@@ -31,7 +31,7 @@ class GroupController extends Controller
             return response()->json(['message' => 'Group not found'], 404);
         }
 
-        // Return the group if found
+        // Return the group along with its challenges
         return response()->json($group);
     }
 }

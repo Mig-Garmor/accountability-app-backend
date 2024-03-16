@@ -13,4 +13,9 @@ class Group extends Model
     {
         return $this->belongsToMany(User::class)->withPivot('permission');
     }
+
+    public function challenges()
+    {
+        return $this->hasMany(Challenge::class, 'group_id');
+    }
 }
