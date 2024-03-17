@@ -15,8 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('group_id');
             $table->foreign('group_id')->references('id')->on('groups')->onDelete('cascade');
-            // Other challenge attributes...
-            $table->date('start_date'); // Add this line for the startDate column
+            $table->date('start_date');
             $table->timestamps();
         });
     }

@@ -9,7 +9,7 @@ class Challenge extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['group_id', 'startDate'];
+    protected $fillable = ['group_id', 'start_date'];
 
     public function group()
     {
