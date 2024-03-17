@@ -18,6 +18,6 @@ class Challenge extends Model
 
     public function users()
     {
-        return $this->belongsToMany(User::class, 'challenge_user'); // Assuming 'challenge_user' is your pivot table name
+        return $this->belongsToMany(User::class);
     }
 }
