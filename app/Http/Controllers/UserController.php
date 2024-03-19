@@ -22,8 +22,13 @@ class UserController extends Controller
             'password' => Hash::make($validatedData['password']),
         ]);
 
-
-
         return response()->json(['user' => $user]);
+    }
+
+    public function allUsers()
+    {
+        $users = User::all(['id', 'name']);
+
+        return response()->json(['users' => $users]);
     }
 }

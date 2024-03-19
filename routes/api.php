@@ -28,3 +28,5 @@ Route::middleware('auth:sanctum')->post('/group', [GroupController::class, 'stor
 Route::middleware('auth:sanctum')->get('/group/{groupId}', [GroupController::class, 'getGroup']);
 //Challenge
 Route::middleware('auth:sanctum')->post('/challenge', [ChallengeController::class, 'createChallenge']);
+//Users
+Route::middleware('auth:sanctum')->get('/users', [UserController::class, 'allUsers']);
