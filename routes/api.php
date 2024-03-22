@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\ChallengeController;
+use App\Http\Controllers\MessagesController;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,6 +27,10 @@ Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logo
 //Group
 Route::middleware('auth:sanctum')->post('/group', [GroupController::class, 'storeGroup']);
 Route::middleware('auth:sanctum')->get('/group/{groupId}', [GroupController::class, 'getGroup']);
+//Messages
+Route::middleware('auth:sanctum')->post('/messages/invite', [MessagesController::class, 'inviteUser']);
+Route::middleware('auth:sanctum')->get('/messages', [MessagesController::class, 'allMessages']);
+
 //Challenge
 Route::middleware('auth:sanctum')->post('/challenge', [ChallengeController::class, 'createChallenge']);
 //Users

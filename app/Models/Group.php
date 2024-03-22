@@ -18,4 +18,9 @@ class Group extends Model
     {
         return $this->hasMany(Challenge::class, 'group_id');
     }
+
+    public function messages()
+    {
+        return $this->hasMany(Message::class, 'group_id');
+    }
 }
