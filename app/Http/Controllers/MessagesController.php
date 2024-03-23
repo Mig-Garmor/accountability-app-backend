@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\GroupUser;
 use Illuminate\Http\Request;
-use App\Models\Message; // Ensure you have the Message model created
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 use App\Models\User; // Assuming you have a User model
 use App\Models\Group; // Assuming you have a Group model
-use Illuminate\Support\Facades\Validator;
+use App\Models\Message; // Ensure you have the Message model created
 
 
 class MessagesController extends Controller
@@ -61,6 +63,49 @@ class MessagesController extends Controller
             'data' => $message,
         ], 201);
     }
+
+    public function acceptInvitation(Request $request)
+    {
+        $request->validate([
+            'messageId' => 'required|integer|exists:messages,id',
+        ]);
+
+        $messageId = $request->input('messageId');
+        $message = Message::findOrFail($messageId);
+
+        // Check if the message type is 'invitation'
+        if ($message->type !== 'INVITE') {
+            return response()->json(['message' => 'This message is not an invitation.'], 400);
+        }
+
+        // Check if the current user is the target user of the invitation
+        $userId = Auth::id();
+        if ($message->target_user_id !== $userId) {
+            return response()->json(['message' => 'You are not the target user of this invitation.'], 403);
+        }
+
+        // Check if the user is already in a group
+        $groupUserExists = GroupUser::where('user_id', $userId)->exists();
+        if ($groupUserExists) {
+            return response()->json(['message' => 'You are already in a group.'], 400);
+        }
+
+        // Assuming you have a way to determine the group ID from the message
+        $groupId = $message->group_id;
+
+        // Add the user to the group
+        GroupUser::create([
+            'group_id' => $groupId,
+            'user_id' => $userId,
+            'permission' => 'USER', // or 'ADMIN' depending on your logic
+        ]);
+
+        // Delete the invitation message from the database
+        $message->delete();
+
+        return response()->json(['message' => 'You have been successfully added to the group and the invitation has been deleted.']);
+    }
+
 
     public function allMessages(Request $request)
     {

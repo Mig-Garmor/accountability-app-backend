@@ -28,8 +28,9 @@ Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logo
 Route::middleware('auth:sanctum')->post('/group', [GroupController::class, 'storeGroup']);
 Route::middleware('auth:sanctum')->get('/group/{groupId}', [GroupController::class, 'getGroup']);
 //Messages
-Route::middleware('auth:sanctum')->post('/messages/invite', [MessagesController::class, 'inviteUser']);
 Route::middleware('auth:sanctum')->get('/messages', [MessagesController::class, 'allMessages']);
+Route::middleware('auth:sanctum')->post('/messages/invite', [MessagesController::class, 'inviteUser']);
+Route::middleware('auth:sanctum')->post('/messages/invite/accept', [MessagesController::class, 'acceptInvitation']);
 
 //Challenge
 Route::middleware('auth:sanctum')->post('/challenge', [ChallengeController::class, 'createChallenge']);
