@@ -34,4 +34,32 @@ class GroupController extends Controller
         // Return the group along with its challenges
         return response()->json($group);
     }
+
+    public function getActiveChallenge(Request $request, $groupId)
+    {
+        // Retrieve the group with all its challenges
+        $group = Group::with('challenges')->find($groupId);
+
+        // Check if the group was found
+        if (!$group) {
+            return response()->json(['message' => 'Group not found'], 404);
+        }
+
+        // Retrieve the current user's ID
+        // Assuming you are using Laravel's default authentication
+        $userId = auth()->id();
+
+        // Filter through the group's challenges to find the first one associated with the user
+        $activeChallenge = $group->challenges->first(function ($challenge) use ($userId) {
+            return $challenge->users->contains($userId);
+        });
+
+        // Check if an active challenge was found for the user
+        if (!$activeChallenge) {
+            return response()->json(['message' => 'There are no active challenges for this group'], 404);
+        }
+
+        // Return the active challenge
+        return response()->json($activeChallenge, 200);
+    }
 }

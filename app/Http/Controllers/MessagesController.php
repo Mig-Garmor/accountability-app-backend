@@ -103,7 +103,7 @@ class MessagesController extends Controller
         // Delete the invitation message from the database
         $message->delete();
 
-        return response()->json(['message' => 'You have been successfully added to the group and the invitation has been deleted.']);
+        return response()->json(['message' => 'You have been successfully added to the group and the invitation has been deleted.', 'data' => ['groupId' => $groupId]]);
     }
 
 

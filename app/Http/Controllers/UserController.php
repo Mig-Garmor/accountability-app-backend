@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
@@ -30,5 +31,20 @@ class UserController extends Controller
         $users = User::all(['id', 'name']);
 
         return response()->json(['users' => $users]);
+    }
+
+    public function currentUser()
+    {
+        // Retrieve the currently authenticated user
+        $user = Auth::user();
+
+        // Check if a user is authenticated
+        if (!$user) {
+            // If no user is currently authenticated, you might want to return an appropriate response
+            return response()->json(['message' => 'No authenticated user'], 404);
+        }
+
+        // Return the authenticated user's information
+        return response()->json($user);
     }
 }
