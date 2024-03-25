@@ -36,6 +36,8 @@ Route::middleware('auth:sanctum')->post('/messages/invite/accept', [MessagesCont
 
 //Challenge
 Route::middleware('auth:sanctum')->post('/challenge', [ChallengeController::class, 'createChallenge']);
+Route::middleware('auth:sanctum')->post('/challenge/enter', [ChallengeController::class, 'enterChallenge']);
+
 //Users
 Route::middleware('auth:sanctum')->get('/users', [UserController::class, 'allUsers']);
 Route::middleware('auth:sanctum')->get('/users/current', [UserController::class, 'currentUser']);
