@@ -5,8 +5,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\GroupController;
-use App\Http\Controllers\ChallengeController;
+use App\Http\Controllers\TasksController;
 use App\Http\Controllers\MessagesController;
+use App\Http\Controllers\ChallengeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -41,3 +42,6 @@ Route::middleware('auth:sanctum')->post('/challenge/enter', [ChallengeController
 //Users
 Route::middleware('auth:sanctum')->get('/users', [UserController::class, 'allUsers']);
 Route::middleware('auth:sanctum')->get('/users/current', [UserController::class, 'currentUser']);
+
+//Tasks
+Route::middleware('auth:sanctum')->post('/tasks', [TasksController::class, 'store']);

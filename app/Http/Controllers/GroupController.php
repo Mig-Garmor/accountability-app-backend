@@ -38,7 +38,7 @@ class GroupController extends Controller
     public function getActiveChallenge(Request $request, $groupId)
     {
         // Retrieve the group with all its challenges
-        $group = Group::with('challenges')->find($groupId);
+        $group = Group::with('challenges.users.tasks')->find($groupId);
 
         // Check if the group was found
         if (!$group) {
@@ -51,7 +51,7 @@ class GroupController extends Controller
 
         // Filter through the group's challenges to find the first one associated with the user
         $activeChallenge = $group->challenges->first(function ($challenge) use ($userId) {
-            return $challenge->users->contains($userId);
+            return $challenge->users->contains('id', $userId);
         });
 
         // Check if an active challenge was found for the user
