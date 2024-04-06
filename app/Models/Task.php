@@ -18,4 +18,9 @@ class Task extends Model
     {
         return $this->belongsTo(Challenge::class);
     }
+
+    public function completedTasks()
+    {
+        return $this->hasMany(CompletedTask::class);
+    }
 }

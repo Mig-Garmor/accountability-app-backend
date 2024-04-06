@@ -8,6 +8,8 @@ use App\Http\Controllers\GroupController;
 use App\Http\Controllers\TasksController;
 use App\Http\Controllers\MessagesController;
 use App\Http\Controllers\ChallengeController;
+use App\Http\Controllers\WebsocketButtonMessage;
+use App\Http\Controllers\CompletedTaskController;
 
 /*
 |--------------------------------------------------------------------------
@@ -45,3 +47,6 @@ Route::middleware('auth:sanctum')->get('/users/current', [UserController::class,
 
 //Tasks
 Route::middleware('auth:sanctum')->post('/tasks', [TasksController::class, 'store']);
+//Websocket broadcast
+Route::middleware('auth:sanctum')->post('/completedTask', [TasksController::class, 'completeTask']);
+//--Websocket broadcast

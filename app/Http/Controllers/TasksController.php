@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Task;
 use Illuminate\Http\Request;
+use App\Events\TaskCompleted;
+use App\Models\CompletedTask;
 use Illuminate\Support\Facades\Auth;
 
 class TasksController extends Controller
@@ -36,5 +38,45 @@ class TasksController extends Controller
 
         // Return a response or redirect the user
         return response()->json(['message' => 'Task created successfully', 'task' => $task], 201);
+    }
+
+    public function completeTask(Request $request)
+    {
+        $request->validate([
+            'task_id' => 'required|exists:tasks,id',
+            'day' => 'required|integer|between:1,28',
+        ]);
+
+        // Check for existing entry
+        $existingEntry = CompletedTask::where('task_id', $request->task_id)
+            ->where('day', $request->day)
+            ->first();
+
+        if ($existingEntry) {
+            // Delete the existing entry
+            $existingEntry->delete();
+
+            // Dispatch the event
+            event(new TaskCompleted(['completedTask' => $existingEntry, 'action' => 'REMOVE', 'userId' => $request->user()->id]));
+
+            return response()->json([
+                'message' => 'Completed task deleted successfully.',
+                'data' => $existingEntry,
+            ]);
+        } else {
+            // Add the new completed task entry
+            $completedTask = CompletedTask::create([
+                'task_id' => $request->task_id,
+                'day' => $request->day,
+            ]);
+
+            // Dispatch the event
+            event(new TaskCompleted(['completedTask' => $completedTask, 'action' => 'ADD', 'userId' => $request->user()->id]));
+
+            return response()->json([
+                'message' => 'Completed task added successfully.',
+                'data' => $completedTask,
+            ]);
+        }
     }
 }

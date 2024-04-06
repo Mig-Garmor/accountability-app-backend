@@ -38,7 +38,7 @@ class GroupController extends Controller
     public function getActiveChallenge(Request $request, $groupId)
     {
         // Retrieve the group with all its challenges
-        $group = Group::with('challenges.users.tasks')->find($groupId);
+        $group = Group::with(['challenges.users.tasks.completedTasks'])->find($groupId);
 
         // Check if the group was found
         if (!$group) {
