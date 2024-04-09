@@ -47,6 +47,8 @@ Route::middleware('auth:sanctum')->get('/users/current', [UserController::class,
 
 //Tasks
 Route::middleware('auth:sanctum')->post('/tasks', [TasksController::class, 'store']);
+Route::middleware('auth:sanctum')->delete('/tasks/{taskId}', [TasksController::class, 'deleteTask']);
+
 //Websocket broadcast
 Route::middleware('auth:sanctum')->post('/completedTask', [TasksController::class, 'completeTask']);
 //--Websocket broadcast

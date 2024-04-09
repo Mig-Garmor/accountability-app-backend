@@ -79,4 +79,28 @@ class TasksController extends Controller
             ]);
         }
     }
+    /**
+     * Delete a task.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function deleteTask($id)
+    {
+        // Find the task along with its completed tasks to avoid N+1 query issue
+        $task = Task::with('completedTasks')->findOrFail($id);
+
+        // Check if the task has any associated completed tasks
+        if ($task->completedTasks()->count() > 0) {
+            // If there are associated completed tasks, return an error response
+            return response()->json([
+                'message' => 'Task cannot be deleted because it has associated completed tasks.'
+            ], 403); // 403 Forbidden
+        }
+
+        // If there are no associated completed tasks, delete the task
+        $task->delete();
+
+        return response()->json(['messages' => 'Task deleted successfully'], 200);
+    }
 }
