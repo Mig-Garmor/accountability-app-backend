@@ -31,6 +31,9 @@ Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logo
 Route::middleware('auth:sanctum')->post('/group', [GroupController::class, 'storeGroup']);
 Route::middleware('auth:sanctum')->get('/group/{groupId}', [GroupController::class, 'getGroup']);
 Route::middleware('auth:sanctum')->get('/group/{groupId}/activeChallenge', [GroupController::class, 'getActiveChallenge']);
+Route::middleware('auth:sanctum')->delete('/group/{groupId}/user/{userId}', [GroupController::class, 'removeUserFromGroup']);
+
+
 
 //Messages
 Route::middleware('auth:sanctum')->get('/messages', [MessagesController::class, 'allMessages']);

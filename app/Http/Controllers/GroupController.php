@@ -2,9 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Group;
+use App\Models\Task;
 use App\Models\User;
+use App\Models\Group;
+use App\Models\Challenge;
+use Illuminate\Http\Request;
+use App\Models\CompletedTask;
+use Illuminate\Support\Facades\DB;
 
 class GroupController extends Controller
 {
@@ -73,5 +77,40 @@ class GroupController extends Controller
 
         // Return the active challenge along with user permission
         return response()->json($activeChallenge, 200);
+    }
+
+    public function removeUserFromGroup($groupId, $userId)
+    {
+        DB::beginTransaction();
+
+        try {
+            $group = Group::findOrFail($groupId);
+
+            // Step 2: Detach the user from the group
+            $group->users()->detach($userId);
+
+            // Step 3: Detach the user from challenges and collect challenge IDs
+            $challengeIds = $group->challenges()->pluck('challenges.id');
+            Challenge::whereIn('id', $challengeIds)->each(function ($challenge) use ($userId) {
+                $challenge->users()->detach($userId);
+            });
+
+            // Step 4: Delete all tasks associated with the user and these challenges
+            $taskIds = Task::where('user_id', $userId)
+                ->whereIn('challenge_id', $challengeIds)
+                ->pluck('id');
+
+            Task::whereIn('id', $taskIds)->delete();
+
+            // Step 5: Delete all completed tasks associated with these tasks
+            CompletedTask::whereIn('task_id', $taskIds)->delete();
+
+            DB::commit();
+
+            return response()->json(['message' => 'User successfully removed from the group and associated data cleaned up.'], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'An error occurred while removing the user from the group: ' . $e->getMessage()], 500);
+        }
     }
 }
