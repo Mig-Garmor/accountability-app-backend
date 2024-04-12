@@ -32,7 +32,7 @@ Route::middleware('auth:sanctum')->post('/group', [GroupController::class, 'stor
 Route::middleware('auth:sanctum')->get('/group/{groupId}', [GroupController::class, 'getGroup']);
 Route::middleware('auth:sanctum')->get('/group/{groupId}/activeChallenge', [GroupController::class, 'getActiveChallenge']);
 Route::middleware('auth:sanctum')->delete('/group/{groupId}/user/{userId}', [GroupController::class, 'removeUserFromGroup']);
-
+Route::middleware('auth:sanctum')->get('/groups', [GroupController::class, 'getAllGroups']);
 
 
 //Messages

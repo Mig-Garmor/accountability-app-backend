@@ -113,4 +113,19 @@ class GroupController extends Controller
             return response()->json(['message' => 'An error occurred while removing the user from the group: ' . $e->getMessage()], 500);
         }
     }
+
+    public function getAllGroups()
+    {
+        $groups = Group::withCount(['users', 'challenges'])
+            ->get(['id', 'name'])
+            ->map(function ($group) {
+                return [
+                    'groupId' => $group->id,
+                    'numberOfMembers' => $group->users_count,
+                    'numberOfChallenges' => $group->challenges_count,
+                ];
+            });
+
+        return response()->json(['message' => 'Groups fetched successfully.', 'data' => $groups]);
+    }
 }
