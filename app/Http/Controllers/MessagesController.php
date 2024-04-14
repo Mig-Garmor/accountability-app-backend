@@ -121,4 +121,43 @@ class MessagesController extends Controller
             'data' => $messages,
         ]);
     }
+
+    public function joinGroup(Request $request)
+    {
+        // Retrieve the currently authenticated user
+        $user = Auth::user();
+
+        // Check if the user is already in a group
+        $groupUserExists = GroupUser::where('user_id', $user->id)->exists();
+        if ($groupUserExists) {
+            return response()->json(['message' => 'You cannot join another group. You already belong to a group.'], 403);
+        }
+
+        // Validate the incoming request data
+        $validator = Validator::make($request->all(), [
+            'groupId' => 'required|exists:groups,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => ['message' => 'Validation errors', 'details' => $validator->errors()]], 400);
+        }
+
+        // Retrieve the group ID from the request
+        $groupId = $request->input('groupId');
+
+        // Create the join request message
+        $message = new Message();
+        $message->type = 'JOIN';
+        $message->content = $user->name . " is requesting to join the group";
+        $message->target_user_id = $user->id;
+        $message->group_id = $groupId;
+        $message->sender_id = $user->id; // Assuming the sender is the same as the target
+        $message->save();
+
+        // Return a success response
+        return response()->json([
+            'message' => 'Join request sent successfully.',
+            'data' => $message,
+        ], 201);
+    }
 }
