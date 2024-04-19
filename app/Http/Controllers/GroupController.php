@@ -26,8 +26,10 @@ class GroupController extends Controller
     }
     public function getGroup(Request $request, $groupId)
     {
-        // Attempt to find the group by its ID with challenges
-        $group = Group::with('challenges')->find($groupId);
+        // Attempt to find the group by its ID and load challenges
+        $group = Group::with(['challenges.users' => function ($query) {
+            $query->where('users.id', auth()->id());
+        }])->find($groupId);
 
         // Check if the group was found
         if (!$group) {
@@ -35,9 +37,32 @@ class GroupController extends Controller
             return response()->json(['message' => 'Group not found'], 404);
         }
 
-        // Return the group along with its challenges
-        return response()->json($group);
+        // Find the first active challenge for the user within this group
+        $activeChallenge = $group->challenges->first(function ($challenge) {
+            return $challenge->users->contains('id', auth()->id());
+        });
+
+        // Format the active challenge to return only relevant details or null if no active challenge
+        $activeChallengeData = $activeChallenge ? true : false;
+
+        $userId = auth()->id(); // Retrieve the authenticated user's ID
+
+        // Directly query the group_user pivot table to find the permission for the given group_id and user_id
+        $permission = DB::table('group_user')
+            ->where('group_id', $groupId)
+            ->where('user_id', $userId)
+            ->value('permission'); // Fetch only the 'permission' column value
+
+
+
+        // Return the group along with its challenges and the active challenge if any
+        return response()->json([
+            'group' => $group,
+            'activeChallenge' => $activeChallengeData,
+            'userPermission' => $permission
+        ]);
     }
+
 
     public function getActiveChallenge(Request $request, $groupId)
     {
@@ -69,7 +94,7 @@ class GroupController extends Controller
 
         // Check if an active challenge was found for the user
         if (!$activeChallenge) {
-            return response()->json(['message' => 'There are no active challenges for this group'], 404);
+            return response()->json(['message' => 'There are no active challenges for this user'], 404);
         }
 
         // You might want to include userPermission in the response if it's needed on the front end

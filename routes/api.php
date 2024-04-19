@@ -39,10 +39,16 @@ Route::middleware('auth:sanctum')->get('/groups', [GroupController::class, 'getA
 Route::middleware('auth:sanctum')->get('/messages', [MessagesController::class, 'allMessages']);
 Route::middleware('auth:sanctum')->post('/messages/invite', [MessagesController::class, 'inviteUser']);
 Route::middleware('auth:sanctum')->post('/messages/invite/accept', [MessagesController::class, 'acceptInvitation']);
+Route::middleware('auth:sanctum')->post('/messages/join', [MessagesController::class, 'joinGroup']);
+Route::middleware('auth:sanctum')->post('/messages/join/accept', [MessagesController::class, 'acceptJoinRequest']);
+
+
 
 //Challenge
 Route::middleware('auth:sanctum')->post('/challenge', [ChallengeController::class, 'createChallenge']);
 Route::middleware('auth:sanctum')->post('/challenge/enter', [ChallengeController::class, 'enterChallenge']);
+Route::middleware('auth:sanctum')->delete('/challenge/{challengeId}', [ChallengeController::class, 'deleteChallenge']);
+
 
 //Users
 Route::middleware('auth:sanctum')->get('/users', [UserController::class, 'allUsers']);

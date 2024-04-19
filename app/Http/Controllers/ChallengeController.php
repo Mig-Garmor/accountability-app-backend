@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use App\Models\ChallengeUser;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 
 class ChallengeController extends Controller
@@ -25,13 +26,23 @@ class ChallengeController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['message' => $validator->errors()], 400);
+            return response()->json(['message' => $validator->errors(), 'success' => false], 400);
         }
 
         // Find the group using groupId
         $group = Group::find($data['groupId']);
         if (!$group) {
-            return response()->json(['message' => 'Group not found'], 404);
+            return response()->json(['message' => 'Group not found', 'success' => false], 404);
+        }
+
+        // Check if the user has ADMIN permission for this group
+        $groupUser = DB::table('group_user')
+            ->where('group_id', $data['groupId'])
+            ->where('user_id', $user->id)
+            ->first();
+
+        if (!$groupUser || $groupUser->permission !== 'ADMIN') {
+            return response()->json(['message' => 'Unauthorized: You do not have permission to create a challenge', 'success' => false], 403);
         }
 
         // Create a new challenge linked to the specified group and with startDate
@@ -48,6 +59,7 @@ class ChallengeController extends Controller
         return response()->json([
             'message' => 'Challenge created successfully',
             'challenge' => $challenge,
+            'success' => true
         ], 201);
     }
 
@@ -88,5 +100,44 @@ class ChallengeController extends Controller
 
         // Return a success response
         return response()->json(['message' => 'User entered the challenge successfully']);
+    }
+
+    protected function getUserPermission($userId, $groupId)
+    {
+        return DB::table('group_user')
+            ->where('group_id', $groupId)
+            ->where('user_id', $userId)
+            ->value('permission');  // Fetch only the 'permission' column value
+    }
+
+    public function deleteChallenge(Request $request, $challengeId)
+    {
+        $user = $request->user(); // Get the authenticated user
+
+        // Find the challenge using the $challengeId parameter from the route
+        $challenge = Challenge::find($challengeId);
+
+        if (!$challenge) {
+            return response()->json(['message' => 'Challenge not found', 'success' => false], 404);
+        }
+
+        $groupId = $challenge->group_id;
+
+        // Get the user permission for the specific group
+        $permission = $this->getUserPermission($user->id, $groupId);
+
+        // Authorization check: Ensure the user requesting deletion has 'ADMIN' permission
+        if ($permission !== 'ADMIN') {
+            return response()->json(['message' => 'Unauthorized to delete this challenge', 'success' => false], 403);
+        }
+
+        // Delete the challenge
+        try {
+            $challenge->delete();
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to delete the challenge', 'success' => false], 500);
+        }
+
+        return response()->json(['message' => 'Challenge deleted successfully', 'success' => true]);
     }
 }
