@@ -52,9 +52,6 @@ class ChallengeController extends Controller
             // Add other necessary challenge attributes here
         ]);
 
-        // Link the user to the challenge (assuming you have a method to do this)
-        $challenge->users()->attach($user->id); // This assumes you have a pivot table for linking challenges and users
-
         // Respond with the created challenge, including startDate, and a success message
         return response()->json([
             'message' => 'Challenge created successfully',
