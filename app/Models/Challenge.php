@@ -11,6 +11,9 @@ class Challenge extends Model
 
     protected $fillable = ['group_id', 'start_date'];
 
+    // Add custom dates
+    protected $dates = ['start_date'];
+
     public function group()
     {
         return $this->belongsTo(Group::class);
@@ -18,7 +21,7 @@ class Challenge extends Model
 
     public function users()
     {
-        return $this->belongsToMany(User::class);
+        return $this->belongsToMany(User::class, 'challenge_user');
     }
 
     public function tasks()
