@@ -26,10 +26,8 @@ class GroupController extends Controller
     }
     public function getGroup(Request $request, $groupId)
     {
-        // Attempt to find the group by its ID and load challenges
-        $group = Group::with(['challenges.users' => function ($query) {
-            $query->where('users.id', auth()->id());
-        }])->find($groupId);
+        // Load the group with all challenges, and eager load users for each challenge
+        $group = Group::with(['challenges.users'])->find($groupId);
 
         // Check if the group was found
         if (!$group) {
@@ -37,15 +35,21 @@ class GroupController extends Controller
             return response()->json(['message' => 'Group not found'], 404);
         }
 
-        // Find the first active challenge for the user within this group
-        $activeChallenge = $group->challenges->first(function ($challenge) {
-            return $challenge->users->contains('id', auth()->id());
+        // Get the authenticated user's ID
+        $userId = auth()->id();
+
+        // Enhance each challenge with a 'userIsAssociated' attribute
+        $activeChallenge = null; // Initialize the active challenge variable
+        $group->challenges->each(function ($challenge) use ($userId, &$activeChallenge) {
+            $challenge->userIsAssociated = $challenge->users->contains('id', $userId);
+            // Optionally, unload the users relation if it's no longer needed in the response
+            unset($challenge->users);
+
+            // Determine the active challenge for the user
+            if (!$activeChallenge && $challenge->userIsAssociated) {
+                $activeChallenge = $challenge;
+            }
         });
-
-        // Format the active challenge to return only relevant details or null if no active challenge
-        $activeChallengeData = $activeChallenge ? true : false;
-
-        $userId = auth()->id(); // Retrieve the authenticated user's ID
 
         // Directly query the group_user pivot table to find the permission for the given group_id and user_id
         $permission = DB::table('group_user')
@@ -53,15 +57,14 @@ class GroupController extends Controller
             ->where('user_id', $userId)
             ->value('permission'); // Fetch only the 'permission' column value
 
-
-
-        // Return the group along with its challenges and the active challenge if any
+        // Return the group along with its enhanced challenges and the active challenge
         return response()->json([
             'group' => $group,
-            'activeChallenge' => $activeChallengeData,
+            'activeChallenge' => $activeChallenge, // Pass active challenge data as needed by the frontend
             'userPermission' => $permission
         ]);
     }
+
 
 
     public function getActiveChallenge(Request $request, $groupId)

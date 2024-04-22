@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use App\Models\Group;
 use App\Models\Challenge;
 use App\Models\GroupUser;
 use Illuminate\Http\Request;
 use App\Models\ChallengeUser;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\DB;
 
 
 class ChallengeController extends Controller
@@ -101,10 +102,15 @@ class ChallengeController extends Controller
 
         if ($activeChallenges->count() == 1) {
             $firstChallenge = $activeChallenges->first();
-            $firstChallengeEndDate = $firstChallenge->start_date->copy()->addDays(28);
+            // Convert startDate to a Carbon instance
+            $firstChallengeStartDate = Carbon::parse($firstChallenge->start_date);
+            $firstChallengeEndDate = $firstChallengeStartDate->copy()->addDays(28);
             $last14DaysMark = $firstChallengeEndDate->subDays(14);
-            if ($challenge->start_date < $last14DaysMark) {
-                return response()->json(['message' => 'The second challenge can only be entered if there are less than 14 days remaining in the first challenge'], 409);
+
+            // Ensure challenge->start_date is a Carbon instance before comparison
+            $challengeStartDate = Carbon::parse($challenge->start_date);
+            if ($challengeStartDate < $last14DaysMark) {
+                return response()->json(['message' => 'You cannot enter a new challenge yet.'], 409);
             }
         }
 
