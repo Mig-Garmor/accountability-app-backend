@@ -172,4 +172,35 @@ class ChallengeController extends Controller
 
         return response()->json(['message' => 'Challenge deleted successfully', 'success' => true]);
     }
+
+    public function exitChallenge(Request $request, $challengeId)
+    {
+        // Retrieve the current authenticated user's ID
+        $userId = Auth::id();
+
+        // Find the challenge to ensure it exists
+        $challenge = Challenge::find($challengeId);
+        if (!$challenge) {
+            return response()->json(['message' => 'Challenge not found'], 404);
+        }
+
+        // Check if the user is part of the challenge
+        $participation = ChallengeUser::where('user_id', $userId)
+            ->where('challenge_id', $challengeId)
+            ->first();
+
+        if (!$participation) {
+            return response()->json(['message' => 'User is not part of this challenge'], 404);
+        }
+
+        $challenge = Challenge::find($challengeId);
+
+        // Attempt to delete the user's participation
+        try {
+            $challenge->users()->detach($userId);
+            return response()->json(['message' => 'User has successfully left the challenge', 'success' => true]);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to leave the challenge', 'success' => false], 500);
+        }
+    }
 }

@@ -48,6 +48,8 @@ Route::middleware('auth:sanctum')->post('/messages/join/accept', [MessagesContro
 Route::middleware('auth:sanctum')->post('/challenge', [ChallengeController::class, 'createChallenge']);
 Route::middleware('auth:sanctum')->post('/challenge/enter', [ChallengeController::class, 'enterChallenge']);
 Route::middleware('auth:sanctum')->delete('/challenge/{challengeId}', [ChallengeController::class, 'deleteChallenge']);
+Route::middleware('auth:sanctum')->post('/challenge/{challengeId}/exit', [ChallengeController::class, 'exitChallenge']);
+
 
 
 //Users
