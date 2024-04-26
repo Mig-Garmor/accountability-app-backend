@@ -203,4 +203,41 @@ class ChallengeController extends Controller
             return response()->json(['message' => 'Failed to leave the challenge', 'success' => false], 500);
         }
     }
+    public function removeUserFromChallenge(Request $request, $challengeId, $userIdToRemove)
+    {
+        $authUser = $request->user(); // Get the authenticated user
+
+        // Find the challenge to ensure it exists
+        $challenge = Challenge::find($challengeId);
+        if (!$challenge) {
+            return response()->json(['message' => 'Challenge not found'], 404);
+        }
+
+        $groupId = $challenge->group_id;
+
+        // Get the user permission for the specific group
+        $permission = $this->getUserPermission($authUser->id, $groupId);
+
+        // Authorization check: Ensure the user requesting removal has 'ADMIN' permission
+        if ($permission !== 'ADMIN') {
+            return response()->json(['message' => 'Unauthorized: Only an admin can remove users from the challenge', 'success' => false], 403);
+        }
+
+        // Check if the user to remove is part of the challenge
+        $participation = ChallengeUser::where('user_id', $userIdToRemove)
+            ->where('challenge_id', $challengeId)
+            ->first();
+
+        if (!$participation) {
+            return response()->json(['message' => 'User is not part of this challenge'], 404);
+        }
+
+        // Attempt to delete the user's participation
+        try {
+            $challenge->users()->detach($userIdToRemove);
+            return response()->json(['message' => 'User has successfully been removed from the challenge', 'success' => true]);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to remove the user from the challenge', 'success' => false], 500);
+        }
+    }
 }

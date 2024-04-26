@@ -28,7 +28,19 @@ class UserController extends Controller
 
     public function allUsers()
     {
-        $users = User::all(['id', 'name']);
+        $users = User::with(['groups'])->get()->map(function ($user) {
+            $data = [
+                'id' => $user->id,
+                'name' => $user->name,
+            ];
+
+            // Check if user is associated with any group
+            if ($user->groups->isNotEmpty()) {
+                $data['groupId'] = $user->groups->first()->id; // Get the id of the first group
+            }
+
+            return $data;
+        });
 
         return response()->json(['users' => $users]);
     }

@@ -49,6 +49,8 @@ Route::middleware('auth:sanctum')->post('/challenge', [ChallengeController::clas
 Route::middleware('auth:sanctum')->post('/challenge/enter', [ChallengeController::class, 'enterChallenge']);
 Route::middleware('auth:sanctum')->delete('/challenge/{challengeId}', [ChallengeController::class, 'deleteChallenge']);
 Route::middleware('auth:sanctum')->post('/challenge/{challengeId}/exit', [ChallengeController::class, 'exitChallenge']);
+Route::middleware('auth:sanctum')->delete('/challenge/{challengeId}/remove/{userIdToRemove}', [ChallengeController::class, 'removeUserFromChallenge']);
+
 
 
 
