@@ -47,8 +47,8 @@ class UserController extends Controller
 
     public function currentUser()
     {
-        // Retrieve the currently authenticated user
-        $user = Auth::user();
+        // Retrieve the currently authenticated user with the related groups
+        $user = Auth::user()->load('groups');
 
         // Check if a user is authenticated
         if (!$user) {
@@ -56,7 +56,19 @@ class UserController extends Controller
             return response()->json(['message' => 'No authenticated user'], 404);
         }
 
-        // Return the authenticated user's information
-        return response()->json($user);
+        // Prepare the response data including user details
+        $data = [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+        ];
+
+        // Check if user is associated with any groups and add the first group's ID to the response
+        if ($user->groups->isNotEmpty()) {
+            $data['groupId'] = $user->groups->first()->id;
+        }
+
+        // Return the authenticated user's information along with the group ID if available
+        return response()->json($data);
     }
 }

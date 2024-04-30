@@ -59,9 +59,10 @@ class MessagesController extends Controller
 
         // Return a response, possibly including the message details or a success message
         return response()->json([
+            'success' => true,
             'message' => 'Invitation sent successfully.',
             'data' => $message,
-        ], 201);
+        ], 200);
     }
 
     public function acceptInvitation(Request $request)
@@ -150,7 +151,7 @@ class MessagesController extends Controller
         // Optionally, delete the join request message after processing
         $message->delete();
 
-        return response()->json(['message' => 'User added to the group successfully.']);
+        return response()->json(['message' => 'User added to the group successfully.', 'success' => true]);
     }
 
 
@@ -206,7 +207,7 @@ class MessagesController extends Controller
         // Check if the user is already in a group
         $groupUserExists = GroupUser::where('user_id', $user->id)->exists();
         if ($groupUserExists) {
-            return response()->json(['message' => 'You cannot join another group. You already belong to a group.'], 403);
+            return response()->json(['message' => 'You cannot join another group. You already belong to a group.', 'success' => false], 409);
         }
 
         // Validate the incoming request data
@@ -232,6 +233,7 @@ class MessagesController extends Controller
 
         // Return a success response
         return response()->json([
+            'success' => true,
             'message' => 'Join request sent successfully.',
             'data' => $message,
         ], 201);

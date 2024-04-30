@@ -45,7 +45,7 @@ class User extends Authenticatable
 
     public function groups()
     {
-        return $this->belongsToMany(Group::class)->withPivot('permission');
+        return $this->belongsToMany(Group::class)->withPivot('permission')->withTimestamps();
     }
 
     public function tasks()

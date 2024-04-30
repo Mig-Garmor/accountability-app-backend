@@ -9,6 +9,7 @@ use App\Models\Challenge;
 use Illuminate\Http\Request;
 use App\Models\CompletedTask;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class GroupController extends Controller
 {
@@ -22,7 +23,7 @@ class GroupController extends Controller
         // Attach the user to the group with ADMIN permission.
         $group->users()->attach($user->id, ['permission' => 'ADMIN']);
 
-        return response()->json(['message' => 'Group created successfully', 'group' => $group], 201);
+        return response()->json(['success' => true, 'message' => 'Group created successfully', 'group' => $group], 201);
     }
     public function getGroup(Request $request, $groupId)
     {
@@ -65,8 +66,6 @@ class GroupController extends Controller
         ]);
     }
 
-
-
     public function getActiveChallenge(Request $request, $groupId)
     {
         // Retrieve the current user's ID
@@ -107,40 +106,80 @@ class GroupController extends Controller
         return response()->json($activeChallenge, 200);
     }
 
-    public function removeUserFromGroup($groupId, $userId)
+    public function removeUserFromGroup($groupId, $userIdToRemove)
     {
+
         DB::beginTransaction();
 
         try {
+            Log::info('Group Id start', [$groupId]);
+            $userIdFromUrl = (int) $userIdToRemove;
+            $authUserId = auth()->id(); // Get the authenticated user's ID
+
+            // If trying to remove another user, check for admin permissions
+            if ($authUserId !== $userIdFromUrl) {
+                DB::enableQueryLog();
+                $permission = DB::table('group_user')
+                    ->where('group_id', (int) $groupId)
+                    ->where('user_id', $authUserId)
+                    ->value('permission');
+
+                $queryLog = DB::getQueryLog();
+                Log::info('Query Log:', $queryLog);
+
+                Log::info('Group Id', [(int) $groupId]);
+                Log::info('User Id', [$authUserId]);
+                Log::info('User to remove id', [$userIdFromUrl]);
+                Log::info('User PERMISSION', [$permission]);
+
+
+                if ($permission !== 'ADMIN') {
+                    DB::rollBack();
+                    return response()->json([
+                        'message' => 'Unauthorized: You need admin privileges to remove another user.',
+                        'success' => false
+                    ], 403);
+                }
+            }
+
             $group = Group::findOrFail($groupId);
 
-            // Step 2: Detach the user from the group
-            $group->users()->detach($userId);
+            // Detach the user from the group
+            $group->users()->detach($userIdFromUrl);
 
-            // Step 3: Detach the user from challenges and collect challenge IDs
-            $challengeIds = $group->challenges()->pluck('challenges.id');
-            Challenge::whereIn('id', $challengeIds)->each(function ($challenge) use ($userId) {
-                $challenge->users()->detach($userId);
-            });
+            // If the user being removed is an admin, check if there are other admins left
+            if ($authUserId === $userIdFromUrl || $permission === 'ADMIN') {
+                $remainingAdmins = DB::table('group_user')
+                    ->where('group_id', $groupId)
+                    ->where('permission', 'ADMIN')
+                    ->whereNotIn('user_id', [$userIdFromUrl])
+                    ->exists();
 
-            // Step 4: Delete all tasks associated with the user and these challenges
-            $taskIds = Task::where('user_id', $userId)
-                ->whereIn('challenge_id', $challengeIds)
-                ->pluck('id');
+                // If no remaining admins, assign the 'ADMIN' permission to the earliest joined member
+                if (!$remainingAdmins) {
+                    $newAdmin = $group->users()
+                        ->whereNotIn('users.id', [$userIdFromUrl])
+                        ->orderBy('created_at', 'asc')
+                        ->first();
 
-            Task::whereIn('id', $taskIds)->delete();
-
-            // Step 5: Delete all completed tasks associated with these tasks
-            CompletedTask::whereIn('task_id', $taskIds)->delete();
+                    if ($newAdmin) {
+                        $group->users()->updateExistingPivot($newAdmin->id, ['permission' => 'ADMIN']);
+                    } else {
+                        // This block is reached if the last admin leaves and no other members are present
+                        // No action needed as there are no users to assign admin
+                    }
+                }
+            }
 
             DB::commit();
 
-            return response()->json(['message' => 'User successfully removed from the group and associated data cleaned up.'], 200);
+            return response()->json(['message' => 'User successfully removed from the group and associated data cleaned up.', 'success' => true], 200);
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['message' => 'An error occurred while removing the user from the group: ' . $e->getMessage()], 500);
+            return response()->json(['message' => 'An error occurred while removing the user from the group: ' . $e->getMessage(), 'success' => false], 500);
         }
     }
+
 
     public function getAllGroups()
     {
